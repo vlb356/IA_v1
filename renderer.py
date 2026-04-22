@@ -189,40 +189,51 @@ class Renderer:
 
         title = self.font_big.render(
             "V1 · Presa busca Fruta · FrozenLake-v1 · Q-Learning", True, C_TEXT)
-        self.screen.blit(title, (10, hy+6))
-        self.screen.blit(
-            self.font_sm.render("ESC para salir", True, C_TEXT_DIM),
-            (WIN_W - 100, hy+6))
+        self.screen.blit(title, (10, hy+8))
+        esc = self.font_sm.render("ESC para salir", True, C_TEXT_DIM)
+        self.screen.blit(esc, (WIN_W - esc.get_width() - 10, hy+10))
 
-        def stat(label, val, color, x, y):
-            self.screen.blit(self.font_sm.render(label, True, C_TEXT_DIM), (x, y))
-            self.screen.blit(self.font_med.render(str(val), True, color),
-                             (x + len(label)*7, y))
+        def stat(label, val, color, x, y, value_x=None):
+            lbl = self.font_sm.render(label, True, C_TEXT_DIM)
+            self.screen.blit(lbl, (x, y))
+            vx = value_x if value_x is not None else x + lbl.get_width() + 6
+            self.screen.blit(self.font_med.render(str(val), True, color), (vx, y))
 
-        stat("Episodio:     ", stats.get("episode", 0),         C_TEXT,      10, hy+26)
-        stat("Epsilon:      ", f'{stats.get("epsilon", 0):.3f}', C_PREY,     10, hy+44)
-        stat("Tasa global:  ", f'{stats.get("win_rate", 0):.1f}%', C_QVAL_POS,10, hy+62)
+        LX, LV = 10, 115
+        RX, RV = 250, 375
+
+        stat("Episodio:",      stats.get("episode", 0),              C_TEXT,      LX, hy+30, LV)
+        stat("Epsilon:",       f'{stats.get("epsilon", 0):.3f}',     C_PREY,      LX, hy+48, LV)
+        stat("Tasa global:",   f'{stats.get("win_rate", 0):.1f}%',   C_QVAL_POS,  LX, hy+66, LV)
         stat("Tasa reciente:",
              f'{stats.get("recent_rate", 0):.1f}%',
              (90,210,120) if stats.get("recent_rate",0) > 50 else C_QVAL_NEG,
-             10, hy+80)
+             LX, hy+84, LV)
 
         cx2, cy2 = _cell_xy(state)
-        stat("Celda presa:  ", f"({cx2},{cy2}) idx={state}", C_TEXT_DIM,    280, hy+26)
-        stat("Mejor acción: ", ACTION_LABELS[int(np.argmax(Q[state]))], C_ARROW, 280, hy+44)
-        stat("Aprendidas:   ",
+        stat("Celda presa:",   f"({cx2},{cy2}) idx={state}",                 C_TEXT_DIM, RX, hy+30, RV)
+        stat("Mejor acción:",  ACTION_LABELS[int(np.argmax(Q[state]))],      C_ARROW,    RX, hy+48, RV)
+        stat("Aprendidas:",
              f"{int(np.count_nonzero(Q.any(axis=1)))}/16 celdas",
-             C_TEXT_DIM, 280, hy+62)
+             C_TEXT_DIM, RX, hy+66, RV)
 
-        lx = 430
-        pygame.draw.polygon(self.screen, C_PREY,
-            [(lx+6,hy+28),(lx,hy+40),(lx+12,hy+40)])
-        self.screen.blit(
-            self.font_sm.render("= Presa", True, C_TEXT_DIM), (lx+16, hy+30))
-        pygame.draw.polygon(self.screen, C_PRED_ICON,
-            [(lx+6,hy+50),(lx+12,hy+58),(lx+6,hy+66),(lx,hy+58)])
-        self.screen.blit(
-            self.font_sm.render("= Depredador", True, C_TEXT_DIM), (lx+16, hy+55))
-        pygame.draw.circle(self.screen, C_FRUIT, (lx+6, hy+82), 6)
-        self.screen.blit(
-            self.font_sm.render("= Fruta", True, C_TEXT_DIM), (lx+16, hy+78))
+        ly = hy + 122
+        label_dy = -self.font_sm.get_linesize() // 2 + 1
+
+        def legend(icon_draw, icon_x, text):
+            icon_draw(icon_x, ly)
+            self.screen.blit(
+                self.font_sm.render(text, True, C_TEXT_DIM),
+                (icon_x + 14, ly + label_dy))
+
+        legend(
+            lambda x, y: pygame.draw.polygon(self.screen, C_PREY,
+                [(x, y-8), (x-6, y+4), (x+6, y+4)]),
+            28, "= Presa")
+        legend(
+            lambda x, y: pygame.draw.polygon(self.screen, C_PRED_ICON,
+                [(x, y-8), (x+8, y), (x, y+8), (x-8, y)]),
+            200, "= Depredador")
+        legend(
+            lambda x, y: pygame.draw.circle(self.screen, C_FRUIT, (x, y), 6),
+            380, "= Fruta")

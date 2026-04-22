@@ -33,7 +33,7 @@ START          = 0
 # ── PyGame ────────────────────────────────────────────────────────────────────
 CELL           = 130
 WIN_W          = GRID * CELL
-HUD_H          = 110
+HUD_H          = 150
 WIN_H          = GRID * CELL + HUD_H
 FPS            = 30
 
